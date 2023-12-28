@@ -21,8 +21,8 @@ export default function ValidateOtpPage() {
     try {
          const updatedFormData = {
         ...formData,
-        referenceId: otpReferenceId || formData.referenceId,
-        initiatorId: userId || formData.initiatorId,
+        referenceId:  formData.referenceId || otpReferenceId,
+        initiatorId:formData.initiatorId  || userId,
         requestType: 'signUp',
       };
       // Assuming you'll perform a POST request with the form data
@@ -70,7 +70,62 @@ export default function ValidateOtpPage() {
       [name]: value,
     }));
   };
+  const generateOTP = async (event) => {
+    event.preventDefault(); // Prevent default form submission if present
 
+    let OtpPayload ={
+      
+      initiatorId:userId || formData.initiatorId,
+    }
+    
+    try {
+      const response = await axios.post(`${API_URL}otp/generate`,  OtpPayload);
+
+      if (response.status === 200) {
+        const responseData = response.data;
+      
+
+        // Optional: Display success message or perform other actions
+  // Check if registration was successful based on status and handle accordingly
+  if (responseData.status === 200) {
+    const { referenceId } = responseData.payload; // Assuming response structure
+
+ 
+    // Update the state
+    setFormData((formData) => ({
+      ...formData,
+      referenceId: referenceId
+    }));
+    console.log(referenceId)
+    // Call handleSubmit after updating state
+   // handleSubmit(event); // Pass event data if required
+    alert(responseData.message); // Display success message using alert
+
+  } else {
+    // Handle other status codes if needed
+    alert('Otp generation failed'); // Display a generic failure message
+  }
+} else {
+  // Handle non-200 status codes if needed
+  alert('Otp generation request failed'); // Display a generic failure message
+}
+} catch (error) {
+  // Handle errors here
+  if (error.response) {
+    // The request was made and the server responded with a status code
+    // that falls out of the range of 2xx
+    const errorResponse = error.response.data;
+
+    alert(`Error: ${errorResponse.message}`);
+  } else if (error.request) {
+    // The request was made but no response was received
+    alert('Network error. Please try again.');
+  } else {
+    // Something happened in setting up the request
+    alert('Error occurred during Otp generation');
+  }
+}
+  };
   return (
     <div className="text-center m-5-auto">
       <h2>OTP Form</h2>
@@ -93,6 +148,7 @@ export default function ValidateOtpPage() {
       </form>
       <footer>
         <p>First time? <Link to="/login">Login account</Link>.</p>
+        <p>Generate otp ?   <button onClick={generateOTP}>Generate OTP</button>.</p>
         <p><Link to="/">Back to Homepage</Link>.</p>
       </footer>
     </div>
